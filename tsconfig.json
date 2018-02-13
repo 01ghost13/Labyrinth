@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES5",
+    "module": "commonjs",
+    "lib": [
+      "dom",
+      "es2017"
+    ],
+    "noImplicitAny": true,
+    "removeComments": true,
+    "sourceMap": true
+  },
+  "exclude": [
+    "node_modules",
+    "vendor"
+  ],
+  "files": [
+    "./node_modules/phaser-ce/typescript/phaser.comments.d.ts"
+  ],
+  "include": [
+    "resources/assets/ts/**/*"
+  ]
+}
