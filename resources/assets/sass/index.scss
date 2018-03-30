@@ -1,0 +1,26 @@
+.logo
+{
+  text-align: center;
+
+  .logo-text
+  {
+    @include unselectable(none);
+    @include text-outline-bold(0.1vw, #FFF, #BBB);
+
+    font-size: 9vw;
+    font-weight: bold;
+
+    padding-top: 3vw;
+
+    color: #222;
+
+    transition: all 2.5s;
+  }
+
+  .logo-text:hover
+  {
+    @include text-outline-bold(0.1vw, #FCC, #BBB);
+
+    color: #0A0A0A;
+  }
+}
