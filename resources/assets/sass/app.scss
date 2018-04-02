@@ -5,8 +5,14 @@
 // Variables
 @import "variables";
 
+// Mixin
+@import "mixin";
+
 // Bootstrap
 @import '~bootstrap/scss/bootstrap';
+
+// For index page
+@import "index";
 
 .navbar-laravel {
   background-color: #fff;

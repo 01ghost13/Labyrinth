@@ -1,19 +1,29 @@
-<!doctype html>
-<html lang="{{ app()->getLocale() }}">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+@extends('layouts.app')
 
-        <title>Labyrinth</title>
+@section('content')
+    <div class="logo">
+        <span class="logo-text">{{ config('app.name') }}</span>
+    </div>
+    <div class="container">
+        <h3>{{ __('common.hello', ['name' => Auth::user()->name ?? 'guest']) }}!</h3>
 
-        <link rel="stylesheet" href="{{ mix('/css/app.css') }}">
+        @guest
+            <a href="{{ route('login') }}">{{ __('Login') }}</a>
+            <br>
+            <a href="{{ route('register') }}">{{ __('Register') }}</a>
+        @else
+            <a href="{{ route('game') }}">Game</a>
+            @if ( \Auth::user()->isAdmin())
+                <br>
+                <a href="{{ route('admin-index') }}">admin</a>
+            @endif
 
-        <script type="text/javascript" src="{{ mix('/js/app.js') }}"></script>
-        <script type="text/javascript" src="{{ mix('/js/game.js') }}"></script>
-    </head>
-    <body>
+            <br>
 
-    </body>
-</html>
+            <form id="logout-form" action="{{ route('logout') }}" method="POST">
+                @csrf
+                <input type="submit" value="{{ __('Logout') }}" class="btn btn-primary">
+            </form>
+        @endguest
+    </div>
+@endsection
