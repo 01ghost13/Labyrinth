@@ -1,5 +1,16 @@
 let mix = require('laravel-mix');
 
+const WebpackShellPlugin = require('webpack-shell-plugin');
+
+
+
+
+mix.webpackConfig({
+    plugins:
+    [
+        new WebpackShellPlugin({onBuildStart: ['php artisan lang:js public/js/lang.js -c'], onBuildEnd: []})
+    ]
+}).version('public/js/lang.js');
 
 
 mix.js('resources/assets/js/app.js', 'public/js')
