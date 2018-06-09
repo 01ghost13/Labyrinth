@@ -17,7 +17,7 @@ mix.webpackConfig({
 
 
 mix.js('resources/assets/js/app.js', 'public/js')
-   .ts('resources/assets/ts/game.ts', 'public/js')
+   .js('resources/assets/js/game.js', 'public/js')
    .sass('resources/assets/sass/app.scss', 'public/css');
 
 
