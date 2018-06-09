@@ -5,6 +5,9 @@ const WebpackShellPlugin = require('webpack-shell-plugin');
 
 
 
+mix.disableNotifications();
+
+
 mix.webpackConfig({
     plugins:
     [
