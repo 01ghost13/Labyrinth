@@ -1,3 +1,7 @@
+//import Map    from "./Map";
+import Phaser from "phaser-ce";
+
+
 window.onload = function() {
 
     let game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create });
@@ -16,3 +20,13 @@ window.onload = function() {
     }
 
 };
+
+
+/* Example Map.get();
+
+(async () => {
+    let mapData = await Map.get();
+    console.log(mapData);
+})();
+
+*/
