@@ -5,16 +5,16 @@ import Phaser from "phaser-ce";
 
 window.onload = function() {
 
-    let game = new Phaser.Game(800, 800, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+    let game = new Phaser.Game(800, 800, Phaser.AUTO, "", { preload: preload, create: create, update: update });
     let player = null;
     let walls = null;
     let floor = null;
 
     function preload () {
 
-        game.load.spritesheet('player', 'img/player.png', 87, 86);
-        game.load.image('wall', 'img/wall.bmp');
-        game.load.image('grass', 'img/grass_sized.png');
+        game.load.spritesheet("player", "img/player.png", 87, 86);
+        game.load.image("wall", "img/wall.bmp");
+        game.load.image("grass", "img/grass_sized.png");
 
     }
 
@@ -23,7 +23,7 @@ window.onload = function() {
         game.physics.startSystem(Phaser.Physics.ARCADE);
 
         Map.testMap()
-            .then(d => drawMap(d))
+            .then((d) => drawMap(d))
             .then(() => drawPlayer());
     }
 
