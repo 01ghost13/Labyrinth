@@ -17,6 +17,18 @@ Route::get('/', function () {
  */
 Route::get('/game', 'GameController@index')->name('game');
 
+
+/*
+ * Ajax-only area
+ */
+Route::group(['middleware' => ['ajax']], function() {
+
+    Route::post('/map/get', 'MapController@get')->name('getMap');
+    Route::post('/map/set', 'MapController@set')->name('setMap');
+
+});
+
+
 /*
  * Admin area
  */

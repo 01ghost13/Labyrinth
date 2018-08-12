@@ -1,7 +1,8 @@
 let config = {
     uris: {
         map: {
-            get: '/map/get'
+            get: '/map/get',
+            set: '/map/set'
         }
     }
 };

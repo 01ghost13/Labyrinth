@@ -64,6 +64,10 @@ return [
             'url' => env('AWS_URL'),
         ],
 
+        'maps' => [
+            'driver' => 'local',
+            'root' => storage_path('maps'),
+        ],
     ],
 
 ];

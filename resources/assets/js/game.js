@@ -22,11 +22,30 @@ window.onload = function() {
 };
 
 
-/* Example Map.get();
+/* Example */
 
+/*
 (async () => {
-    let mapData = await Map.get();
-    console.log(mapData);
+
+    await Map.save({
+        name: 'test1',
+
+        width: 5,
+        height: 5,
+
+        data: [
+            1, 1, 1, 1, 1,
+            1, 1, 2, 1, 1,
+            1, 2, 2, 2, 1,
+            1, 1, 2, 1, 1,
+            1, 1, 1, 1, 1,
+        ]
+    });
+    console.log('map save ok');
+
+    window.mapData = await Map.get('test1');
+    console.log(window.mapData);
+
 })();
 
 */

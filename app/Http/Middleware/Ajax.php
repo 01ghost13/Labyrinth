@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 
-class Admin
+class Ajax
 {
     /**
      * Handle an incoming request.
@@ -15,11 +15,11 @@ class Admin
      */
     public function handle($request, Closure $next)
     {
-        if (\Auth::check() and \Auth::user()->isAdmin() == true)
+        if ($request->ajax())
         {
             return $next($request);
         }
 
-        return response('Who is it?', 403);
+        return response(view('errors.404'), 404);
     }
 }
