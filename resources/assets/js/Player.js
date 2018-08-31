@@ -2,10 +2,11 @@ import Phaser from "phaser-ce";
 
 export default class Player extends Phaser.Sprite {
 
-    constructor(game, x, y) {
+    constructor(game, x, y, id) {
 
         super(game, x, y, "player");
         this.movingSpeed = 70;
+        this.id = id;
 
         game.stage.addChild(this);
         game.physics.arcade.enable(this);
@@ -50,6 +51,8 @@ export default class Player extends Phaser.Sprite {
             this.animations.stop();
             this.frame = 8;
         }
+
+        return {x: this.body.x, y: this.body.y};
 
     }
 }

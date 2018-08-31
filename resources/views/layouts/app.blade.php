@@ -13,7 +13,7 @@
     <!-- Styles -->
     <link rel="stylesheet" href="{{ mix('/css/app.css') }}">
 </head>
-<body>
+<body data-user-id="{{ \Auth::check() ? \Auth::user()->id : 0 }}">
 
 <header>
     @yield('header')
