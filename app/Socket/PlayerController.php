@@ -4,6 +4,7 @@ namespace App\Socket;
 
 
 use App\Events\DataFromUser;
+use App\Position;
 use App\Socket\Base\Socket;
 use Ratchet\ConnectionInterface;
 
@@ -19,13 +20,31 @@ class PlayerController extends Socket
     {
         parent::onMessage($from, $msg);
 
+        event(
+            new DataFromUser($from, $msg)
+        );
 
         foreach ($this->connections as $connection)
         {
-            if ($connection !== $from)
+            $positions = Position::all();
+            $data = [];
+
+            foreach ($positions as $position)
             {
-                $connection->send($msg);
+                $data['players'][] = [
+                    'id' => $position->positionable_id,
+
+                    'x' => $position->x,
+                    'y' => $position->y,
+                ];
             }
+
+            $connection->send(json_encode($data));
+
+            //if ($connection !== $from)
+            //{
+                //$connection->send($msg);
+            //}
         }
     }
 }
