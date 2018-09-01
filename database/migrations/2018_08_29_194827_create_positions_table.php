@@ -16,8 +16,8 @@ class CreatePositionsTable extends Migration
         Schema::create('positions', function (Blueprint $table) {
             $table->bigIncrements('id');
 
-            $table->bigInteger('x');
-            $table->bigInteger('y');
+            $table->float('x');
+            $table->float('y');
 
             $table->unsignedBigInteger('positionable_id');
             $table->string('positionable_type');

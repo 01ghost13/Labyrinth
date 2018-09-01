@@ -61,6 +61,6 @@ abstract class Socket implements MessageComponentInterface
      */
     function onMessage(ConnectionInterface $from, $msg)
     {
-        echo 'Connection ' . $from->resourceId . ' sending message "' . $msg . '" to ' . (\count($this->connections) - 1) . ' other connections' . PHP_EOL;
+        //echo 'Connection ' . $from->resourceId . ' sending message "' . $msg . '" to ' . (\count($this->connections) - 1) . ' other connections' . PHP_EOL;
     }
 }
