@@ -4,9 +4,9 @@ export default class Player extends Phaser.Sprite {
 
     constructor(game, x, y, id) {
 
-        super(game, x, y, "player");
+        super(game, parseFloat(x), parseFloat(y), "player");
         this.movingSpeed = 70;
-        this.id = id;
+        this.id = parseInt(id);
 
         game.stage.addChild(this);
         game.physics.arcade.enable(this);
@@ -55,4 +55,26 @@ export default class Player extends Phaser.Sprite {
         return {x: this.body.x, y: this.body.y};
 
     }
+
+    moveTo(x, y) {
+
+        this.x = parseFloat(x);
+        this.y = parseFloat(y);
+
+    }
+
+    moveWithAnimation(game, x, y) {
+        if (Math.round(x * 10) / 10 === Math.round(this.x * 10) / 10 && Math.round(y * 10) / 10 === Math.round(y * 10) / 10) {
+            return;
+        }
+        this.animations.play("right");
+        let duration = game.physics.arcade.distanceToXY(this, x, y) / this.movingSpeed * 1000;
+        let tween = game.add.tween(this).to({ x: x, y: y }, duration, Phaser.Easing.Linear.None, true);
+        tween.onComplete.add(function () {
+            this.animations.stop();
+            this.frame = 8;
+        }, this);
+
+    }
+
 }

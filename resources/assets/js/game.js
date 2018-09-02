@@ -7,11 +7,12 @@ import Phaser from "phaser-ce";
 window.onload = function() {
 
     let game = null;
-    let player = null;
+    let me = null; //host player
     let walls = null;
     let floor = null;
     let conn = new WebSocket('ws://' + window.location.hostname + ':8090');
-    let players = null;
+    let players = []; //connected players
+    let receivedData = null;
     let time = performance.now();
 
     conn.onopen = () => {
@@ -23,6 +24,7 @@ window.onload = function() {
         game.load.spritesheet("player", "img/player.png", 87, 86);
         game.load.image("wall", "img/wall.bmp");
         game.load.image("grass", "img/grass_sized.png");
+        game.stage.disableVisibilityChange = true; //To not pause when losing focus
         //conn = new WebSocket('ws://' + window.location.hostname + ':8090');
 
     }
@@ -35,12 +37,11 @@ window.onload = function() {
             .then((d) => { drawMap(d); return d; })
             .then((d) => { drawPlayer(); return d; })
             .then((d) => {
-                drawPlayers(players)
+                drawPlayers();
             });
 
         conn.onmessage = (d) => {
-            let data = JSON.parse(d.data);
-            players = data.players;
+            receivedData = JSON.parse(d.data);
         };
 
     }
@@ -49,19 +50,22 @@ window.onload = function() {
 
         //if (performance.now() - time < 1000) return;
 
-        time = performance.now();
+        // time = performance.now();
 
-        game.physics.arcade.collide(player, walls);
+        game.physics.arcade.collide(me, walls);
         game.physics.arcade.collide(players, walls);
-        game.physics.arcade.collide(player, players);
+        game.physics.arcade.collide(me, players);
 
         let cursors = game.input.keyboard.createCursorKeys();
-        let new_position = player.handleMoving(cursors);
+        let new_position = me.handleMoving(cursors);
+        drawPlayers();
+
+        //State to send
         let data = {
-            id: player.id,
+            id: me.id,
             ...new_position,
         };
-        drawPlayers(players);
+        //Send my new state to server
         conn.send(JSON.stringify(data));
 
     }
@@ -81,7 +85,7 @@ window.onload = function() {
                         let tile = walls.create(i*80, j*80, "wall");
                         tile.body.immovable = true;
                         break;
-                    case 2:
+                    case 3:
                         //TODO: button
                         break;
                     default:
@@ -94,45 +98,30 @@ window.onload = function() {
 
     function drawPlayer() {
 
-        player = new Player(game, 100, 100, $('body').data('userId'));
+        me = new Player(game, 100.0, 100.0, $('body').data('userId'));
 
     }
 
-    //TODO: Init draw players
-    async function drawPlayers(playersData) {
+    function drawPlayers() {
+        if(!receivedData) {
+            return;
+        }
+        let newPlayersInfo = receivedData.players;
 
-        if (!playersData) return;
-
-        playersData.forEach(elem => {
-
-            let existPlayer = _.findIndex(players, (pp) => pp.id === elem.id);
-
-            if (existPlayer === -1) {
-                players.push(new Player(game, parseFloat(elem.x), parseFloat(elem.y)));
-            } else {
-                players[existPlayer].x = parseFloat(elem.x);console.log(existPlayer);
-                players[existPlayer].y = parseFloat(elem.y);
-            }
-
-        });
-
-        /*await ((ar) => {
-
-            if (!ar) return;
-
-            ar.forEach(elem => {
-
+        for (let elem of newPlayersInfo) {
+            if(elem.id !== me.id) {
                 let existPlayer = _.findIndex(players, (pp) => pp.id === elem.id);
-
                 if (existPlayer === -1) {
-                    players.push(new Player(game, parseFloat(elem.x), parseFloat(elem.y)));
+                    //Adding new player to the scene
+                    players.push(new Player(game, elem.x, elem.y, elem.id));
                 } else {
-                    players[existPlayer].x = parseFloat(elem.x);
-                    players[existPlayer].y = parseFloat(elem.y);
+                    //Moving existing one
+                    players[existPlayer].moveWithAnimation(game, elem.x, elem.y);
+                    // players[existPlayer].x = parseFloat(elem.x);
+                    // players[existPlayer].y = parseFloat(elem.y);
                 }
-
-            });
-        })(playersData);*/
+            }
+        }
     }
 };
 
