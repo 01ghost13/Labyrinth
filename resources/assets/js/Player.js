@@ -64,15 +64,16 @@ export default class Player extends Phaser.Sprite {
     }
 
     moveWithAnimation(game, x, y) {
-        if (Math.round(x * 10) / 10 === Math.round(this.x * 10) / 10 && Math.round(y * 10) / 10 === Math.round(y * 10) / 10) {
-            return;
-        }
-        this.animations.play("right");
-        let duration = game.physics.arcade.distanceToXY(this, x, y) / this.movingSpeed * 1000;
-        let tween = game.add.tween(this).to({ x: x, y: y }, duration, Phaser.Easing.Linear.None, true);
-        tween.onComplete.add(function () {
+        if (Math.round(x * 100) / 100 === Math.round(this.x * 100) / 100 && Math.round(y * 100) / 100 === Math.round(y * 100) / 100) {
             this.animations.stop();
             this.frame = 8;
+        }
+        this.animations.play("right");
+        let duration = game.physics.arcade.distanceToXY(this, x, y) / this.movingSpeed;
+        let tween = game.add.tween(this).to({ x: x, y: y }, duration, Phaser.Easing.Linear.None, true);
+        tween.onComplete.add(function () {
+            // this.animations.stop();
+            // this.frame = 8;
         }, this);
 
     }
