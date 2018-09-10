@@ -16,6 +16,25 @@ class PlayerController extends Socket
     protected $data;
 
     /**
+     * When a new connection is opened it will be passed to this method
+     *
+     * @param  ConnectionInterface $conn The socket/connection that just connected to your application
+     * @throws \Exception
+     */
+    public function onOpen(ConnectionInterface $conn)
+    {
+        parent::onOpen($conn);
+
+        if (!$this->auth($conn))
+        {
+            $this->onError($conn, new \Exception('Denied'));
+            return;
+        }
+
+        echo 'User: ' . $this->getUser($conn)->id . PHP_EOL;
+    }
+
+    /**
      * Triggered when a client sends data through the socket
      * @param  \Ratchet\ConnectionInterface $from The socket/connection that sent the message to your application
      * @param  string $msg The message received
@@ -25,12 +44,13 @@ class PlayerController extends Socket
     {
         parent::onMessage($from, $msg);
 
-        //usleep(100000);
 
         /*event(
             new DataFromUser($from, $msg)
         );*/
-        $data = json_decode($msg);
+
+        $data     = json_decode($msg);
+        $data->id = $this->getUser($from)->id;
 
         $this->data[$data->id] = $data;
 

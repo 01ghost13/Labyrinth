@@ -48,6 +48,8 @@ window.onload = function() {
 
     function update() {
 
+        if (!me) return; // wtf?
+
         //if (performance.now() - time < 1000) return;
 
         // time = performance.now();
@@ -62,7 +64,6 @@ window.onload = function() {
 
         //State to send
         let data = {
-            id: me.id,
             ...new_position,
         };
         //Send my new state to server
