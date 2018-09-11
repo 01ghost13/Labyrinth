@@ -18,7 +18,7 @@ abstract class Socket implements MessageComponentInterface
     /**
      * @var array - users list
      */
-    protected $users;
+    protected $users = [];
 
     /**
      * When a new connection is opened it will be passed to this method
@@ -39,6 +39,11 @@ abstract class Socket implements MessageComponentInterface
      */
     public function onClose(ConnectionInterface $conn)
     {
+        if (isset($this->users[$conn->resourceId]))
+        {
+            unset($this->users[$conn->resourceId]);
+        }
+
         unset($this->connections[$conn->resourceId]);
 
         echo 'Connection ' . $conn->resourceId . ' has disconnected' . PHP_EOL;
@@ -54,6 +59,11 @@ abstract class Socket implements MessageComponentInterface
     public function onError(ConnectionInterface $conn, \Exception $e)
     {
         echo 'An error has occurred: ' . $e->getMessage() . PHP_EOL;
+
+        if (isset($this->users[$conn->resourceId]))
+        {
+            unset($this->users[$conn->resourceId]);
+        }
 
         unset($this->connections[$conn->resourceId]);
 

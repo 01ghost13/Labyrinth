@@ -12,7 +12,7 @@ window.onload = function() {
     let floor = null;
     let conn = new WebSocket('ws://' + window.location.hostname + ':8090');
     let players = []; //connected players
-    let receivedData = null;
+    let receivedData = {};
     let time = performance.now();
 
     conn.onmessage = (d) => {
@@ -22,13 +22,15 @@ window.onload = function() {
             case 'connected':
 
                 game = new Phaser.Game(800, 800, Phaser.AUTO, "", { preload: preload, create: create, update: update });
+                receivedData.player = data.player;
 
                 break;
             case 'message':
+
+                receivedData.players = data.players;
+
                 break;
         }
-
-        receivedData = data;
     };
 
     function preload () {

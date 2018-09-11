@@ -28,24 +28,6 @@ class UpdateUserPosition
      */
     public function handle(DataFromUser $event)
     {
-        // TODO: wtf is this?
-        if (Position::where('positionable_id', $event->data->id)->count())
-        {
-            User::find($event->data->id)->positions()->update([
-                'x' => $event->data->x,
-                'y' => $event->data->y
-            ]);
-        }
-        else
-        {
-            $position = new Position([
-                'id' => $event->data->id,
-
-                'x' => $event->data->x,
-                'y' => $event->data->y,
-            ]);
-
-            User::find($event->data->id)->positions()->save($position);
-        }
+        //
     }
 }
