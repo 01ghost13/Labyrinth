@@ -15,8 +15,20 @@ window.onload = function() {
     let receivedData = null;
     let time = performance.now();
 
-    conn.onopen = () => {
-        game = new Phaser.Game(800, 800, Phaser.AUTO, "", { preload: preload, create: create, update: update });
+    conn.onmessage = (d) => {
+        let data = JSON.parse(d.data);
+
+        switch (data.event) {
+            case 'connected':
+
+                game = new Phaser.Game(800, 800, Phaser.AUTO, "", { preload: preload, create: create, update: update });
+
+                break;
+            case 'message':
+                break;
+        }
+
+        receivedData = data;
     };
 
     function preload () {
@@ -25,7 +37,6 @@ window.onload = function() {
         game.load.image("wall", "img/wall.bmp");
         game.load.image("grass", "img/grass_sized.png");
         game.stage.disableVisibilityChange = true; //To not pause when losing focus
-        //conn = new WebSocket('ws://' + window.location.hostname + ':8090');
 
     }
 
@@ -35,24 +46,13 @@ window.onload = function() {
 
         Map.testMap()
             .then((d) => { drawMap(d); return d; })
-            .then((d) => { drawPlayer(); return d; })
-            .then((d) => {
-                drawPlayers();
-            });
-
-        conn.onmessage = (d) => {
-            receivedData = JSON.parse(d.data);
-        };
+            .then((d) => { drawPlayer(); return d; });
 
     }
 
     function update() {
 
         if (!me) return; // wtf?
-
-        //if (performance.now() - time < 1000) return;
-
-        // time = performance.now();
 
         game.physics.arcade.collide(me, walls);
         game.physics.arcade.collide(players, walls);
@@ -99,14 +99,20 @@ window.onload = function() {
 
     function drawPlayer() {
 
-        me = new Player(game, 100.0, 100.0, $('body').data('userId'));
+        if (!receivedData.player) {
+            throw new Error('Wrong player data!');
+        }
+
+        me = new Player(game, receivedData.player.x, receivedData.player.y, receivedData.player.id);
 
     }
 
     function drawPlayers() {
-        if(!receivedData) {
+
+        if (!receivedData.players) {
             return;
         }
+        
         let newPlayersInfo = receivedData.players;
 
         for (let elem of newPlayersInfo) {
