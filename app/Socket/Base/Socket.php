@@ -60,13 +60,6 @@ abstract class Socket implements MessageComponentInterface
     {
         echo 'An error has occurred: ' . $e->getMessage() . PHP_EOL;
 
-        if (isset($this->users[$conn->resourceId]))
-        {
-            unset($this->users[$conn->resourceId]);
-        }
-
-        unset($this->connections[$conn->resourceId]);
-
         $conn->close();
     }
 
@@ -98,11 +91,18 @@ abstract class Socket implements MessageComponentInterface
 
         $conn->session->start();
 
-        $this->users[$conn->resourceId] = User::find(
+        $user = User::find(
             $conn->session->get(\Auth::getName())
         );
 
-        return (bool)$this->users[$conn->resourceId];
+        if (!$user || $user->online)
+        {
+            return false;
+        }
+
+        $this->users[$conn->resourceId] = $user;
+
+        return true;
     }
 
     /**

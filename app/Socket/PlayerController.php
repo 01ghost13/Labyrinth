@@ -82,17 +82,47 @@ class PlayerController extends Socket
      */
     public function onOpen(ConnectionInterface $conn)
     {
-        parent::onOpen($conn);
-
         if (!$this->auth($conn))
         {
             $this->onError($conn, new \Exception('Denied'));
             return;
         }
 
-        echo 'User: ' . $this->getUser($conn)->id . PHP_EOL;
+        parent::onOpen($conn);
 
-        $pos = Position::where('positionable_id', $this->getUser($conn)->id)->get()->first();
+        $this->connectUser($conn);
+    }
+
+    public function onClose(ConnectionInterface $conn)
+    {
+        $this->disconnectUser($conn);
+
+        unset($this->data[$conn->resourceId]);
+
+        parent::onClose($conn);
+    }
+
+    public function onError(ConnectionInterface $conn, \Exception $e)
+    {
+        $this->disconnectUser($conn);
+
+        parent::onError($conn, $e);
+    }
+
+    public function connectUser(ConnectionInterface $conn)
+    {
+        $user = $this->getUser($conn);
+
+        if (!$user)
+        {
+            $this->onError($conn, new \Exception('User connection error'));
+            return;
+        }
+
+        $user->online = true;
+        $user->save();
+
+        $pos = Position::where('positionable_id', $user->id)->get()->first();
 
         $conn->send(json_encode([
             'event' => 'connected',
@@ -103,11 +133,21 @@ class PlayerController extends Socket
                 'y' => $pos->y ?? 100,
             ]
         ]));
+
+        echo 'User connected: ' . $user->id . PHP_EOL;
     }
 
-    public function onClose(ConnectionInterface $conn)
+    public function disconnectUser(ConnectionInterface $conn)
     {
         $user = $this->getUser($conn);
+
+        if (!$user)
+        {
+            return;
+        }
+
+        $user->online = false;
+        $user->save();
 
         if (Position::where('positionable_id', $user->id)->count())
         {
@@ -127,10 +167,5 @@ class PlayerController extends Socket
 
             $user->positions()->save($position);
         }
-
-        unset($this->data[$conn->resourceId]);
-
-
-        parent::onClose($conn);
     }
 }
