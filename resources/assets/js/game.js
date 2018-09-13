@@ -6,14 +6,16 @@ import Phaser from "phaser-ce";
 
 window.onload = function() {
 
-    let game = null;
-    let me = null; //host player
-    let walls = null;
-    let floor = null;
+    let
+        me              = null, //host player
+        game            = null,
+        walls           = null,
+        floor           = null,
+        players         = [], //connected players
+        receivedData    = {},
+        me_old_position = null;
+
     let conn = new WebSocket('ws://' + window.location.hostname + ':8090');
-    let players = []; //connected players
-    let receivedData = {};
-    let time = performance.now();
 
     conn.onmessage = (d) => {
         let data = JSON.parse(d.data);
@@ -64,13 +66,20 @@ window.onload = function() {
         let new_position = me.handleMoving(cursors);
         drawPlayers();
 
-        //State to send
-        let data = {
-            ...new_position,
-        };
-        //Send my new state to server
-        conn.send(JSON.stringify(data));
+        if (JSON.stringify(new_position) !== JSON.stringify(me_old_position) ) { // ¯\_(ツ)_/¯
 
+            //State to send
+            let data = {
+                ...new_position,
+            };
+
+            //Send my new state to server
+            conn.send(JSON.stringify(data));
+
+        }
+
+
+        me_old_position = new_position;
     }
 
     function drawMap(mapData) {
