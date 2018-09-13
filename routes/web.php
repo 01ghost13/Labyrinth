@@ -12,10 +12,18 @@ Route::get('/', function () {
     return view('index');
 })->name('index');
 
+
 /*
- * Game
+ * User area
  */
-Route::get('/game', 'GameController@index')->name('game');
+Route::group(['middleware' => ['auth']], function() {
+
+    /*
+     * Game
+     */
+    Route::get('/game', 'GameController@index')->name('game');
+});
+
 
 /*
  * Admin area
