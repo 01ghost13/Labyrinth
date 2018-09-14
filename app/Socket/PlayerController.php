@@ -35,43 +35,44 @@ class PlayerController extends Socket
 
         $this->data[$data->id] = $data;
 
+        $data = $this->getConnectionsData();
+
         foreach ($this->connections as $connection)
         {
-            $data = [];
-
-            foreach ($this->data as $datum)
-            {
-                $data[$datum->id] = [
-                    'id' => $datum->id,
-
-                    'x' => $datum->x,
-                    'y' => $datum->y,
-                ];
-            }
-            /*
-            $positions = Position::all();
-            $data = [];
-
-            foreach ($positions as $position)
-            {
-                $data['players'][] = [
-                    'id' => $position->positionable_id,
-
-                    'x' => $position->x,
-                    'y' => $position->y,
-                ];
-            }*/
-
             $connection->send(json_encode([
                 'event'   => 'message',
                 'players' => $data,
             ]));
-
-            //if ($connection !== $from)
-            //{
-                //$connection->send($msg);
-            //}
         }
+    }
+
+    protected function getConnectionsData(): array
+    {
+        $data = [];
+
+        if (!$this->data)
+        {
+            return [];
+        }
+
+        foreach ($this->data as $datum)
+        {
+            $data[$datum->id] = [
+                'id' => $datum->id,
+
+                'cursor' => [
+                    'up'    => [ 'isDown' => $datum->cursor->up->isDown    ],
+                    'right' => [ 'isDown' => $datum->cursor->right->isDown ],
+                    'down'  => [ 'isDown' => $datum->cursor->down->isDown  ],
+                    'left'  => [ 'isDown' => $datum->cursor->left->isDown  ],
+                ],
+
+                'x' => $datum->x,
+                'y' => $datum->y,
+            ];
+        }
+
+        return $data;
     }
 
     /**
@@ -124,15 +125,31 @@ class PlayerController extends Socket
 
         $pos = Position::where('positionable_id', $user->id)->get()->first();
 
+        $player = [
+            'id' => $conn->resourceId,
+
+            'cursor' => [
+                'up'    => [ 'isDown' => false ],
+                'right' => [ 'isDown' => false ],
+                'down'  => [ 'isDown' => false ],
+                'left'  => [ 'isDown' => false ],
+            ],
+
+            'x' => $pos->x ?? 100,
+            'y' => $pos->y ?? 100,
+        ];
+
+        $temp = json_encode($player);
+
+        $this->data[$conn->resourceId] = json_decode($temp);
+
         $conn->send(json_encode([
             'event' => 'connected',
-            'player' => [
-                'id' => $conn->resourceId,
-
-                'x' => $pos->x ?? 100,
-                'y' => $pos->y ?? 100,
-            ]
+            'player' => $player,
+            'players' => $this->getConnectionsData()
         ]));
+
+        $this->onMessage($conn, $temp);
 
         echo 'User connected: ' . $user->id . PHP_EOL;
     }

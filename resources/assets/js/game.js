@@ -13,7 +13,12 @@ window.onload = function() {
         floor           = null,
         players         = {}, //connected players
         receivedData    = {},
-        me_old_position = {};
+        me_old_cursor   = {
+            up:    { isDown: false    },
+            right: { isDown: false },
+            down:  { isDown: false  },
+            left:  { isDown: false  }
+        };
 
     let conn = new WebSocket('ws://' + window.location.hostname + ':8090');
 
@@ -24,7 +29,9 @@ window.onload = function() {
             case 'connected':
 
                 game = new Phaser.Game(800, 800, Phaser.AUTO, "", { preload: preload, create: create, update: update });
-                receivedData.player = data.player;
+
+                receivedData.player  = data.player;
+                receivedData.players = data.players;
 
                 break;
             case 'message':
@@ -67,11 +74,19 @@ window.onload = function() {
         cleaningPlayers();
         drawPlayers();
 
-        if (1 || new_position.x !== me_old_position.x || new_position.y !== me_old_position.y) { // ¯\_(ツ)_/¯
+        if (me_old_cursor.up.isDown != cursors.up.isDown || me_old_cursor.right.isDown != cursors.right.isDown || me_old_cursor.down.isDown != cursors.down.isDown || me_old_cursor.left.isDown != cursors.left.isDown) { // ¯\_(ツ)_/¯
 
             //State to send
             let data = {
-                ...new_position,
+                cursor: {
+                    up:    { isDown: cursors.up.isDown    },
+                    right: { isDown: cursors.right.isDown },
+                    down:  { isDown: cursors.down.isDown  },
+                    left:  { isDown: cursors.left.isDown  }
+                },
+
+                x: new_position.x,
+                y: new_position.y
             };
 
             //Send my new state to server
@@ -80,7 +95,12 @@ window.onload = function() {
         }
 
 
-        me_old_position = new_position;
+        me_old_cursor = {
+            up:    { isDown: cursors.up.isDown    },
+            right: { isDown: cursors.right.isDown },
+            down:  { isDown: cursors.down.isDown  },
+            left:  { isDown: cursors.left.isDown  }
+        };
     }
 
     function drawMap(mapData) {
@@ -137,15 +157,13 @@ window.onload = function() {
 
             if (existPlayer) {
                 //Moving existing one
-                existPlayer.moveWithAnimation(game, elem.x, elem.y);
+                existPlayer.handleMoving(elem.cursor);
             } else {
                 //Adding new player to the scene
                 players[elem.id] = new Player(game, elem.x, elem.y, elem.id);
             }
 
         }
-
-        receivedData.players = undefined;
     }
 
     function cleaningPlayers() {
