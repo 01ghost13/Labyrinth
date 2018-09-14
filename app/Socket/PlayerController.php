@@ -41,7 +41,7 @@ class PlayerController extends Socket
 
             foreach ($this->data as $datum)
             {
-                $data[] = [
+                $data[$datum->id] = [
                     'id' => $datum->id,
 
                     'x' => $datum->x,

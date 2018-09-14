@@ -11,9 +11,9 @@ window.onload = function() {
         game            = null,
         walls           = null,
         floor           = null,
-        players         = [], //connected players
+        players         = {}, //connected players
         receivedData    = {},
-        me_old_position = null;
+        me_old_position = {};
 
     let conn = new WebSocket('ws://' + window.location.hostname + ':8090');
 
@@ -59,14 +59,15 @@ window.onload = function() {
         if (!me) return; // wtf?
 
         game.physics.arcade.collide(me, walls);
-        game.physics.arcade.collide(players, walls);
-        game.physics.arcade.collide(me, players);
+        game.physics.arcade.collide(_.values(players), walls);
+        game.physics.arcade.collide(me, _.values(players));
 
         let cursors = game.input.keyboard.createCursorKeys();
         let new_position = me.handleMoving(cursors);
+        cleaningPlayers();
         drawPlayers();
 
-        if (JSON.stringify(new_position) !== JSON.stringify(me_old_position) ) { // ¯\_(ツ)_/¯
+        if (1 || new_position.x !== me_old_position.x || new_position.y !== me_old_position.y) { // ¯\_(ツ)_/¯
 
             //State to send
             let data = {
@@ -123,23 +124,51 @@ window.onload = function() {
         if (!receivedData.players) {
             return;
         }
-        
+
         let newPlayersInfo = receivedData.players;
 
-        for (let elem of newPlayersInfo) {
-            if(elem.id !== me.id) {
-                let existPlayer = _.findIndex(players, (pp) => pp.id === elem.id);
-                if (existPlayer === -1) {
-                    //Adding new player to the scene
-                    players.push(new Player(game, elem.x, elem.y, elem.id));
-                } else {
-                    //Moving existing one
-                    players[existPlayer].moveWithAnimation(game, elem.x, elem.y);
-                    // players[existPlayer].x = parseFloat(elem.x);
-                    // players[existPlayer].y = parseFloat(elem.y);
-                }
+        for (let elem of _.values(newPlayersInfo)) {
+
+            if (elem.id === me.id) {
+                continue;
             }
+
+            let existPlayer = players[elem.id];
+
+            if (existPlayer) {
+                //Moving existing one
+                existPlayer.moveWithAnimation(game, elem.x, elem.y);
+            } else {
+                //Adding new player to the scene
+                players[elem.id] = new Player(game, elem.x, elem.y, elem.id);
+            }
+
         }
+
+        receivedData.players = undefined;
+    }
+
+    function cleaningPlayers() {
+
+        if (!receivedData.players) {
+            return;
+        }
+
+        let newPlayersInfo = receivedData.players;
+
+        let ids = _.keys(players);
+
+        _.each(ids, (id) => {
+
+            if (id === me.id) return;
+
+            if (!newPlayersInfo[id]) {
+                players[id].kill();
+                delete players[id];
+            }
+
+        });
+
     }
 };
 

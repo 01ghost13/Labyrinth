@@ -5,7 +5,7 @@ export default class Player extends Phaser.Sprite {
     constructor(game, x, y, id) {
 
         super(game, parseFloat(x), parseFloat(y), "player");
-        this.movingSpeed = 70;
+        this.movingSpeed = 150;
         this.id = parseInt(id);
 
         game.stage.addChild(this);
@@ -68,8 +68,9 @@ export default class Player extends Phaser.Sprite {
                 this.animations.play("left");
             }
         }
-        let duration = game.physics.arcade.distanceToXY(this, x, y) / this.movingSpeed;
-        game.add.tween(this).to({ x: x, y: y }, duration, Phaser.Easing.Linear.None, true);
+
+        this.x = parseFloat(x);
+        this.y = parseFloat(y);
 
     }
 
