@@ -65,14 +65,16 @@ window.onload = function() {
 
         if (!me) return; // wtf?
 
+        let cursors = game.input.keyboard.createCursorKeys();
+        let new_position = me.handleMoving(cursors);
+
+        cleaningPlayers();
+        drawPlayers();
+
         game.physics.arcade.collide(me, walls);
         game.physics.arcade.collide(_.values(players), walls);
         game.physics.arcade.collide(me, _.values(players));
 
-        let cursors = game.input.keyboard.createCursorKeys();
-        let new_position = me.handleMoving(cursors);
-        cleaningPlayers();
-        drawPlayers();
 
         if (me_old_cursor.up.isDown != cursors.up.isDown || me_old_cursor.right.isDown != cursors.right.isDown || me_old_cursor.down.isDown != cursors.down.isDown || me_old_cursor.left.isDown != cursors.left.isDown) { // ¯\_(ツ)_/¯
 
