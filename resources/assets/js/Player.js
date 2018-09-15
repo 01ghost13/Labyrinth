@@ -56,22 +56,4 @@ export default class Player extends Phaser.Sprite {
 
     }
 
-    moveWithAnimation(game, x, y) {
-        if (Math.round(x * 100) / 100 === Math.round(this.x * 100) / 100 && Math.round(y * 100) / 100 === Math.round(this.y * 100) / 100) {
-            this.animations.stop();
-            this.frame = 8;
-        } else {
-            let angle = Math.atan2(x - this.x,  y - this.y) * (180 / Math.PI);
-            if (angle <= 180 && angle >= 0 || angle <= -180 && angle >= - 360) {
-                this.animations.play("right");
-            } else {
-                this.animations.play("left");
-            }
-        }
-
-        this.x = parseFloat(x);
-        this.y = parseFloat(y);
-
-    }
-
 }
