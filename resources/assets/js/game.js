@@ -1,6 +1,7 @@
 import Map    from "./Map";
 import Player from "./Player"
 import Phaser from "phaser-ce";
+import io     from "socket.io-client";
 // import Socket from "./Socket"; //TODO: extract socket logic to class
 // import Cookies from "js-cookie"
 
@@ -12,35 +13,55 @@ window.onload = function() {
         walls           = null,
         floor           = null,
         players         = {}, //connected players
-        receivedData    = {},
-        me_old_cursor   = {
-            up:    { isDown: false    },
-            right: { isDown: false },
-            down:  { isDown: false  },
-            left:  { isDown: false  }
-        };
+        old_position    = {};
 
-    let conn = new WebSocket('ws://' + window.location.hostname + ':8090');
-
-    conn.onmessage = (d) => {
-        let data = JSON.parse(d.data);
-
-        switch (data.event) {
-            case 'connected':
-
-                game = new Phaser.Game(800, 800, Phaser.AUTO, "", { preload: preload, create: create, update: update });
-
-                receivedData.player  = data.player;
-                receivedData.players = data.players;
-
-                break;
-            case 'message':
-
-                receivedData.players = data.players;
-
-                break;
+    let socket = io.connect('http://127.0.0.1:8091', {
+        query: {
+            token: $('meta[name="csrf-token"]').attr('content')
         }
-    };
+    });
+
+    socket.on('connect', (data) => {
+        game = new Phaser.Game(800, 800, Phaser.AUTO, "", { preload: preload, create: create, update: update });
+    });
+
+    socket.on('players.new', (data) => {
+        players[data.id] = new Player(game, data.x, data.y, data.id);
+    });
+
+    socket.on('players.all', (data) => {
+
+        for (let player of _.values(data)) {
+
+            if (!me && socket.id === player.id) {
+                me = new Player(game, player.x, player.y, player.id);
+            }
+            else {
+                players[player.id] = new Player(game, player.x, player.y, player.id);
+            }
+
+        }
+
+    });
+
+    socket.on('players.data', (data) => {
+
+        if (!data || !me) return;
+
+        for (let player of _.values(data)) {
+
+            if (player.id === socket.id) continue;
+
+            players[player.id].moveTo(game, player.x, player.y);
+
+        }
+
+    });
+
+    socket.on('players.disconnect', (id) => {
+        players[id].kill();
+        delete players[id];
+    });
 
     function preload () {
 
@@ -55,9 +76,11 @@ window.onload = function() {
 
         game.physics.startSystem(Phaser.Physics.ARCADE);
 
-        Map.testMap()
-            .then((d) => { drawMap(d); return d; })
-            .then((d) => { drawPlayer(); return d; });
+        Map
+            .testMap()
+            .then((d) => { drawMap(d); return d; });
+
+        socket.emit('players.get.all');
 
     }
 
@@ -68,41 +91,22 @@ window.onload = function() {
         let cursors = game.input.keyboard.createCursorKeys();
         let new_position = me.handleMoving(cursors);
 
-        cleaningPlayers();
-        drawPlayers();
-
         game.physics.arcade.collide(me, walls);
         game.physics.arcade.collide(_.values(players), walls);
         game.physics.arcade.collide(me, _.values(players));
 
-
-        if (me_old_cursor.up.isDown != cursors.up.isDown || me_old_cursor.right.isDown != cursors.right.isDown || me_old_cursor.down.isDown != cursors.down.isDown || me_old_cursor.left.isDown != cursors.left.isDown) { // ¯\_(ツ)_/¯
-
-            //State to send
-            let data = {
-                cursor: {
-                    up:    { isDown: cursors.up.isDown    },
-                    right: { isDown: cursors.right.isDown },
-                    down:  { isDown: cursors.down.isDown  },
-                    left:  { isDown: cursors.left.isDown  }
-                },
-
-                x: new_position.x,
-                y: new_position.y
-            };
+        if (new_position.x !== old_position.x || new_position.y !== old_position.y) {
 
             //Send my new state to server
-            conn.send(JSON.stringify(data));
+            socket.emit('players.position', {
+                x: new_position.x,
+                y: new_position.y
+            });
 
         }
 
+        old_position = new_position;
 
-        me_old_cursor = {
-            up:    { isDown: cursors.up.isDown    },
-            right: { isDown: cursors.right.isDown },
-            down:  { isDown: cursors.down.isDown  },
-            left:  { isDown: cursors.left.isDown  }
-        };
     }
 
     function drawMap(mapData) {
@@ -128,66 +132,6 @@ window.onload = function() {
                 }
             }
         }
-
-    }
-
-    function drawPlayer() {
-
-        if (!receivedData.player) {
-            throw new Error('Wrong player data!');
-        }
-
-        me = new Player(game, receivedData.player.x, receivedData.player.y, receivedData.player.id);
-
-    }
-
-    function drawPlayers() {
-
-        if (!receivedData.players) {
-            return;
-        }
-
-        let newPlayersInfo = receivedData.players;
-
-        for (let elem of _.values(newPlayersInfo)) {
-
-            if (elem.id === me.id) {
-                continue;
-            }
-
-            let existPlayer = players[elem.id];
-
-            if (existPlayer) {
-                //Moving existing one
-                existPlayer.handleMoving(elem.cursor);
-            } else {
-                //Adding new player to the scene
-                players[elem.id] = new Player(game, elem.x, elem.y, elem.id);
-            }
-
-        }
-    }
-
-    function cleaningPlayers() {
-
-        if (!receivedData.players) {
-            return;
-        }
-
-        let newPlayersInfo = receivedData.players;
-
-        let ids = _.keys(players);
-
-        _.each(ids, (id) => {
-
-            if (id === me.id) return;
-
-            if (!newPlayersInfo[id]) {
-                players[id].kill();
-                delete players[id];
-            }
-
-        });
 
     }
 };

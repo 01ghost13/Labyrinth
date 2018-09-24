@@ -58,4 +58,34 @@ export default class Player extends Phaser.Sprite {
 
     }
 
+    moveTo(game, x, y) {
+
+        if (Phaser.Math.roundTo(x, -2) === Phaser.Math.roundTo(this.x, -2) && Phaser.Math.roundTo(y, -2) === Phaser.Math.roundTo(this.y, -2)) {
+
+            this.animations.stop();
+            this.frame = this.lookDirection === 'right' ? 9 : 8;
+
+        } else {
+
+            let angle = Math.atan2(x - this.x,  y - this.y) * (180 / Math.PI);
+
+            if (angle <= 180 && angle >= 0 || angle <= -180 && angle >= - 360) {
+                this.animations.play("right");
+                this.lookDirection = 'right'
+            } else {
+                this.animations.play("left");
+                this.lookDirection = 'left'
+            }
+
+            let duration = Phaser.Math.distance(this.x, this.y, x, y) / this.movingSpeed;
+
+            game
+                .add
+                .tween(this)
+                .to({ x: parseFloat(x), y: parseFloat(y) }, duration, Phaser.Easing.Quadratic.InOut, true);
+
+        }
+
+    }
+
 }
