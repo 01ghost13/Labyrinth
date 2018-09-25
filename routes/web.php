@@ -14,6 +14,18 @@ Route::get('/', function () {
 
 
 /*
+ * WebSocket area
+ */
+Route::group(['prefix' => 'ws', 'middleware' => ['auth']], function() {
+
+    Route::post('/auth', 'SocketController@auth');
+
+    Route::post('/player/get', 'PlayerController@get');
+    Route::post('/player/set', 'PlayerController@set');
+});
+
+
+/*
  * User area
  */
 Route::group(['middleware' => ['auth']], function() {

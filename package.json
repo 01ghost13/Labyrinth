@@ -21,10 +21,13 @@
         "webpack-shell-plugin": "^0.5.0"
     },
     "dependencies": {
+        "express": "^4.16.3",
         "lang.js": "^1.1.12",
         "p2": "^0.7.1",
         "phaser-ce": "^2.10.3",
         "pixi": "^0.3.1",
+        "socket.io": "^2.1.1",
+        "socket.io-client": "^2.1.1",
         "yarn": "^1.5.1"
     }
 }
