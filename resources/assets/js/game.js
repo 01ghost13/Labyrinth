@@ -15,6 +15,9 @@ window.onload = function() {
         players         = {}, //connected players
         old_position    = {};
 
+    let cursors = {};
+    let players_group = [];
+
     let socket = io.connect('http://127.0.0.1:8091', {
         query: {
             token: $('meta[name="csrf-token"]').attr('content')
@@ -22,22 +25,37 @@ window.onload = function() {
     });
 
     socket.on('connect', (data) => {
-        game = new Phaser.Game(800, 800, Phaser.AUTO, "", { preload: preload, create: create, update: update });
+        game = new Phaser.Game(800, 800, Phaser.AUTO, "", { preload: preload,
+                                                            create:  create,
+                                                            update:  update,
+                                                            render:  render });
     });
 
     socket.on('players.new', (data) => {
-        players[data.id] = new Player(game, data.x, data.y, data.id);
+
+        let new_player = new Player(game, data.x, data.y, data.id);
+        players[data.id] = new_player;
+        players_group.add(new_player);
+
     });
 
     socket.on('players.all', (data) => {
 
+        players_group = game.add.physicsGroup();
+
         for (let player of _.values(data)) {
 
             if (!me && socket.id === player.id) {
+
                 me = new Player(game, player.x, player.y, player.id);
-            }
-            else {
-                players[player.id] = new Player(game, player.x, player.y, player.id);
+                players_group.add(me);
+
+            } else {
+
+                let new_player = new Player(game, player.x, player.y, player.id);
+                players[player.id] = new_player;
+                players_group.add(new_player);
+
             }
 
         }
@@ -51,16 +69,21 @@ window.onload = function() {
         for (let player of _.values(data)) {
 
             if (player.id === socket.id) continue;
-
-            players[player.id].moveTo(game, player.x, player.y);
+            players[player.id].moveTo(game, player.x, player.y, player.state);
 
         }
 
     });
 
     socket.on('players.disconnect', (id) => {
+
+        if (!players[id]) {
+            return;
+        }
+
         players[id].kill();
         delete players[id];
+
     });
 
     function preload () {
@@ -82,25 +105,24 @@ window.onload = function() {
 
         socket.emit('players.get.all');
 
+        cursors = game.input.keyboard.createCursorKeys();
     }
 
     function update() {
 
         if (!me) return; // wtf?
 
-        let cursors = game.input.keyboard.createCursorKeys();
+        game.physics.arcade.collide(players_group, players_group);
+        game.physics.arcade.collide(players_group, walls);
+
         let new_position = me.handleMoving(cursors);
 
-        game.physics.arcade.collide(me, walls);
-        game.physics.arcade.collide(_.values(players), walls);
-        game.physics.arcade.collide(me, _.values(players));
-
-        if (new_position.x !== old_position.x || new_position.y !== old_position.y) {
-
+        if (old_position.state !== 'idle') {
             //Send my new state to server
             socket.emit('players.position', {
                 x: new_position.x,
-                y: new_position.y
+                y: new_position.y,
+                state: new_position.state
             });
 
         }
@@ -133,6 +155,25 @@ window.onload = function() {
             }
         }
 
+    }
+
+    function render() {
+
+        if (_.values(players)[0])
+        {
+            game.debug.bodyInfo(_.values(players)[0], 32, 32);
+            game.debug.body(_.values(players)[0]);
+
+            game.debug.bodyInfo(me, 32, 150);
+            game.debug.body(me);
+        }
+
+    }
+
+    function movePlayers() {
+        _.each(players, (v) => {
+            v.nextMove(game);
+        });
     }
 };
 

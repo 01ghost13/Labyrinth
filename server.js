@@ -60,7 +60,8 @@ io
         players[socket.id] = {
             id: socket.id,
             x:  player.x,
-            y:  player.y
+            y:  player.y,
+            state: 'idle'
         };
 
         socket.broadcast.emit('players.new', players[socket.id]);
@@ -86,9 +87,10 @@ function attachHandlers(socket) {
         .on('players.get.all', () => {
             socket.emit('players.all', players);
         })
-        .on('players.position', (position) => {
-            players[socket.id].x = position.x;
-            players[socket.id].y = position.y;
+        .on('players.position', (player_data) => {
+            players[socket.id].x = player_data.x;
+            players[socket.id].y = player_data.y;
+            players[socket.id].state = player_data.state;
         })
         .on('disconnect', async () => {
 
